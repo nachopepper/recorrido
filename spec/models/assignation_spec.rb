@@ -20,5 +20,24 @@ RSpec.describe Assignation, type: :model do
     end
   end
 
+  describe "invalid assignation" do
+    it "is not valid without a date" do
+      invalid_assignation = Assignation.new(start_time: "19:00", end_time: "20:00")
+      expect(invalid_assignation).not_to be_valid
+      expect(invalid_assignation.errors[:date]).to include("can't be blank")
+    end
+
+    it "is not valid without a start_time" do
+      invalid_assignation = Assignation.new(date: Date.today, end_time: "20:00")
+      expect(invalid_assignation).not_to be_valid
+      expect(invalid_assignation.errors[:start_time]).to include("can't be blank")
+    end
+
+    it "is not valid without an end_time" do
+      invalid_assignation = Assignation.new(date: Date.today, start_time: "19:00")
+      expect(invalid_assignation).not_to be_valid
+      expect(invalid_assignation.errors[:end_time]).to include("can't be blank")
+    end
+  end
 
 end

@@ -1,6 +1,22 @@
 # app/services/horario_service.rb
 
 class GreedyService
+
+  def assign_hours_to_users(availability, hours_per_user, total_hours_per_week)
+    aux_availability = availability
+
+    assign_exclusive_day_result = assign_exclusive_day(aux_availability, hours_per_user)
+
+    hours_assigned_per_user = assign_exclusive_day_result[:hours_assigned_per_user]
+    updated_hours_per_user = assign_exclusive_day_result[:hours_per_user]
+    exclude_dates = assign_exclusive_day_result[:exclude_dates]
+
+    user_info = join_users_assigned_and_availables(hours_assigned_per_user, updated_hours_per_user)
+
+    filter_availability = aux_availability.reject { |date| exclude_dates.include?(date) }
+    assign_collision_days(filter_availability, user_info, total_hours_per_week)
+  end
+
   # Asigno inmediatamente para los días que solo un usuario eligió
   def assign_exclusive_day(availability, hours_per_user)
     hours_per_user = hours_per_user

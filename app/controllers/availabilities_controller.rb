@@ -4,7 +4,7 @@ class AvailabilitiesController < ApplicationController
     end_week = params[:end_week]
 
     if !params[:start_week] || !params[:end_week] || params[:start_week] === nil || params[:end_week] === nil
-      render json: { message: "Falta fecha de inicio y termino" }, status: :unprocessable_entity
+      render json: { ok: 'false', message: "Falta fecha de inicio y termino" }, status: :unprocessable_entity
       return
     end
 
@@ -29,8 +29,9 @@ class AvailabilitiesController < ApplicationController
     render json: {
       availabilities_group_by_dates: group_by_dates.as_json,
       availabilities: availabilities.as_json(include: { assignation: { only: [:id, :date] } })
-    }
-
+    }, status: :ok
+    rescue StandardError => e
+      render json: { error: "Internal server error AvailabilitiesController#index", details: e.message }, status: :internal_server_error
   end
 
   def update_multiple
@@ -96,7 +97,9 @@ class AvailabilitiesController < ApplicationController
       ok: true,
       # result: result.as_json,
       # a: a.as_json
-    }
+    }, status: :ok
+  rescue StandardError => e
+    render json: { error: "Internal server error AssignationsController#update", details: e.message }, status: :internal_server_error
   end
   
   private

@@ -18,8 +18,12 @@ RSpec.describe "Availabilities", type: :request do
     context "when valid date range is provided" do
       it "returns the correct data and status" do
         get "/availabilities?start_week=#{@start_week}&end_week=#{@end_week}"
+
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
+        
+        expect(json_response['availabilities_group_by_dates']).to be_present
+        expect(json_response['availabilities']).to be_present
       end
     end
 
@@ -41,7 +45,7 @@ RSpec.describe "Availabilities", type: :request do
   
         expect(response).to have_http_status(:internal_server_error)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq("Internal server error AssignationsController#index")
+        expect(json_response['error']).to eq("Internal server error AvailabilitiesController#index")
       end
     end
   end

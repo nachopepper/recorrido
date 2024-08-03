@@ -47,8 +47,8 @@ class AssignationsController < ApplicationController
       start_week: start_week,
       end_week: end_week
     }, status: :ok
-  rescue StandardError => e
-    render json: { error: "Internal server error AssignationsController#index", details: e.message }, status: :internal_server_error
+    rescue StandardError => e
+      render json: { error: "Internal server error AssignationsController#index", details: e.message }, status: :internal_server_error
   end
 
   def update
