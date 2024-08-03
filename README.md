@@ -22,3 +22,5 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+
+Antes de levantar el servidor, configurar la única variable de entorno que se ocupa que esta ubicada en el archivo .env.example
