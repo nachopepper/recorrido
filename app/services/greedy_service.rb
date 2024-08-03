@@ -1,22 +1,4 @@
-# app/services/horario_service.rb
-
 class GreedyService
-
-  def assign_hours_to_users(availability, hours_per_user, total_hours_per_week)
-    aux_availability = availability
-
-    assign_exclusive_day_result = assign_exclusive_day(aux_availability, hours_per_user)
-
-    hours_assigned_per_user = assign_exclusive_day_result[:hours_assigned_per_user]
-    updated_hours_per_user = assign_exclusive_day_result[:hours_per_user]
-    exclude_dates = assign_exclusive_day_result[:exclude_dates]
-
-    user_info = join_users_assigned_and_availables(hours_assigned_per_user, updated_hours_per_user)
-
-    filter_availability = aux_availability.reject { |date| exclude_dates.include?(date) }
-    assign_collision_days(filter_availability, user_info, total_hours_per_week)
-  end
-
   # Asigno inmediatamente para los días que solo un usuario eligió
   def assign_exclusive_day(availability, hours_per_user)
     hours_per_user = hours_per_user
@@ -72,52 +54,69 @@ class GreedyService
   end
 
   def assign_collision_days(filter_availability, user_info, total_hours_per_week)
+    aux_user_info = user_info
     while !filter_availability.empty?
       assignation = []
-      
+
       filter_availability.each do |date, days|
-        eligible_users = user_info.select { |user| user[:hours_selected] > 0 }
+        eligible_users = aux_user_info.select { |user| user[:hours_selected] > 0 }
         user_with_min_hours_assigned = eligible_users.min_by { |user| user[:hours_assigned] }
         user_id = user_with_min_hours_assigned[:user_id]
         days_to_delete = []
-  
+
         if filter_availability[date.to_s].values.all?(false)
-          puts "borrar"
+          filter_availability.delete(date)
         end
 
         days.each do |assignation_id, hours|
+          has_hours = self.verify_if_user_has_hours_to_assign(days, user_id)
+          if !has_hours
+            aux_user_info = aux_user_info.select { |user| user[:user_id] != user_id }
+            next
+          end
           if hours[user_id.to_s]
             days_to_delete << assignation_id
             assignation << assignation_id
           end
         end
-  
+
         days_to_delete.each do |assignation_id|
           days.delete(assignation_id)
         end
-  
+
         if days.empty?
           filter_availability.delete(date)
         end
-  
+
         if assignation.any?
-          Assignation.where(id: assignation).update_all(user_id: user_id)
-  
-          user_info.each do |user|
+          assignation_update = Assignation.where(id: assignation)
+
+          if assignation_update
+            assignation_update.update_all(user_id: user_id)
+          end
+
+          aux_user_info.each do |user|
             if user[:user_id] == user_id
               user[:hours_assigned] += assignation.size
               user[:hours_selected] -= assignation.size
               break
             end
           end
-  
+
           assignation.clear
         end
-        puts"user_info #{user_info}"
+        
       end
     end
   end
-  
-  
-  
+
+  private 
+  def verify_if_user_has_hours_to_assign(days, user_id)
+    has_hours = false;
+    has_true_value = days.any? do |day, users|
+      if users[user_id.to_s]
+        has_hours = true
+      end
+    end
+  end
 end
