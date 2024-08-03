@@ -1,8 +1,8 @@
 module Utilities
   def self.generate_dates
     today = Date.today
-    start_of_week = today.at_beginning_of_week
-    end_of_week = (today + 5.weeks).at_end_of_week
+    start_of_week = today.at_beginning_of_week(:monday)
+    end_of_week = (today + 5.weeks).at_end_of_week(:sunday)
 
     dates_with_times = (start_of_week..end_of_week).flat_map do |date|
       format_date = date.strftime(DATE_FORMAT)

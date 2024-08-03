@@ -39,7 +39,11 @@ class GreedyService
       end
 
       if user_available && user_available != -1
-        Assignation.where(id: assignation).update_all(user_id: user_available)
+        assignation_update = Assignation.where(id: assignation)
+
+        if assignation_update
+          Assignation.where(id: assignation).update_all(user_id: user_available)
+        end
         if hours_assigned_per_user[user_available]
           hours_assigned_per_user[user_available] += assignation.size
         else
