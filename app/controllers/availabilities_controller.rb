@@ -4,7 +4,7 @@ class AvailabilitiesController < ApplicationController
     end_week = params[:end_week]
 
     if !params[:start_week] || !params[:end_week] || params[:start_week] === nil || params[:end_week] === nil
-      render json: { message: "Falta fecha de inicio y termino" }, status: :unprocessable_entity
+      render json: { ok: 'false', message: "Falta fecha de inicio y termino" }, status: :unprocessable_entity
       return
     end
 
@@ -25,12 +25,13 @@ class AvailabilitiesController < ApplicationController
         }
       end
     end
-
+    
     render json: {
       availabilities_group_by_dates: group_by_dates.as_json,
       availabilities: availabilities.as_json(include: { assignation: { only: [:id, :date] } })
-    }
-
+    }, status: :ok
+    rescue StandardError => e
+      render json: { error: "Internal server error AvailabilitiesController#index", details: e.message }, status: :internal_server_error
   end
 
   def update_multiple
@@ -41,12 +42,14 @@ class AvailabilitiesController < ApplicationController
     hours_per_user = params.require(:hours_per_user).permit!.to_h
 
     # Elimina fechas cuando todas las horas son falsas
-
+   
     availability_filter = availability.each_with_object({}) do |(date, hours_by_user), result|
+      # Filtra las asignaciones que no tienen todas las horas en false
       filtered_assignations = hours_by_user.select do |assignation_id, hours|
         !hours.values.all?(false)
       end
-
+    
+      # Si hay asignaciones restantes, agrega la fecha y sus asignaciones filtradas al resultado
       unless filtered_assignations.empty?
         result[date] = filtered_assignations
       end
@@ -85,6 +88,7 @@ class AvailabilitiesController < ApplicationController
       # Agrega el hash con la estructura deseada al arreglo
       user_info << {user_id: key.to_i, hours_assigned: hours_assigned, hours_selected: hours_selected}
     end
+
     filter_availability = availability_filter.reject { |date| exclude_dates.include?(date)}
     assign_collision_days = greedy_service.assign_collision_days(filter_availability, user_info, total_hours_per_week)
 
@@ -93,9 +97,11 @@ class AvailabilitiesController < ApplicationController
       ok: true,
       # result: result.as_json,
       # a: a.as_json
-    }
+    }, status: :ok
+  rescue StandardError => e
+    render json: { error: "Internal server error AssignationsController#update", details: e.message }, status: :internal_server_error
   end
-
+  
   private
 
   def availabilities_params
