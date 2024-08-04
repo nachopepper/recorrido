@@ -58,31 +58,6 @@ class GreedyService
   end
 
   def assign_collision_days(filter_availability, user_info, total_hours_per_week)
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-    puts "assign_collision_days"
-  
-    num = 0
-
     while !filter_availability.empty?
       num +=1
       assignation = []
@@ -90,12 +65,6 @@ class GreedyService
       filter_availability.each do |date, days|
         eligible_users = user_info.select { |user| user[:hours_selected] > 0 && user[:restriction_date] != date}
         user_with_min_hours_assigned = eligible_users.sort_by { |user| [user[:hours_assigned], user[:hours_selected]] }.first
-  
-        puts "user_info size: #{user_info.size}"
-        puts "user_info size: #{user_info}"
-        puts "user_with_min_hours_assigned: #{user_with_min_hours_assigned}"
-        puts "days: #{days}"
-        puts "date: #{date}"
           
         user_id = user_with_min_hours_assigned[:user_id]
         days_to_delete = []
@@ -106,8 +75,6 @@ class GreedyService
         end
   
         days.each do |assignation_id, hours|
-          puts "assignation_id: #{assignation_id}"
-          puts "hours: #{hours}"
           has_hours = verify_if_user_has_hours_to_assign(days, user_id)
           unless has_hours
             user_info.each do |user|
@@ -116,9 +83,6 @@ class GreedyService
                 break
               end
             end
-            # user_info.reject! { |user| user[:user_id] == user_id }
-            # Actualiza el conteo de usuarios
-            user_count = user_info.size
             break
           end
           
@@ -140,6 +104,9 @@ class GreedyService
             assignation_update.update_all(user_id: user_id)
           end
           
+          if assignation_update && user_id
+            assignation_update.update_all(user_id: user_id)
+          end
           user_info.each do |user|
             if user[:user_id] == user_id
               user[:hours_assigned] += assignation.size
@@ -152,8 +119,7 @@ class GreedyService
         end
       end
   
-      # break if num > 1000
-      # Actualiza el conteo de usuarios después del procesamiento
+      break if num > 10000
       user_count = user_info.size
     end
   rescue StandardError => e
