@@ -32,6 +32,10 @@ rails server
 
 En Rails, los usuarios y horarios se crean a través de seeders. Estos seeders inicializan la base de datos con datos de ejemplo para facilitar las pruebas y el desarrollo.
 
+### Base de Datos
+
+Para simplificar el desarrollo y las pruebas, se utilizó SQLite como base de datos
+
 ### Testing
 
 Se testearon varios casos de uso para asegurar la buena funcionalidad de los controladores y modelos. Las pruebas incluyen:
