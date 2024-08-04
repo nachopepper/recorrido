@@ -59,7 +59,6 @@ class GreedyService
 
   def assign_collision_days(filter_availability, user_info, total_hours_per_week)
     while !filter_availability.empty?
-      num +=1
       assignation = []
       
       filter_availability.each do |date, days|
@@ -119,7 +118,6 @@ class GreedyService
         end
       end
   
-      break if num > 10000
       user_count = user_info.size
     end
   rescue StandardError => e
