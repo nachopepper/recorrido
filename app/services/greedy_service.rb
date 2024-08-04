@@ -58,69 +58,113 @@ class GreedyService
   end
 
   def assign_collision_days(filter_availability, user_info, total_hours_per_week)
-    aux_user_info = user_info
-    while !filter_availability.empty?
-      assignation = []
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+    puts "assign_collision_days"
+  
+    num = 0
 
+    while !filter_availability.empty?
+      num +=1
+      assignation = []
+      
       filter_availability.each do |date, days|
-        eligible_users = aux_user_info.select { |user| user[:hours_selected] > 0 }
-        user_with_min_hours_assigned = eligible_users.min_by { |user| user[:hours_assigned] }
+        eligible_users = user_info.select { |user| user[:hours_selected] > 0 && user[:restriction_date] != date}
+        user_with_min_hours_assigned = eligible_users.sort_by { |user| [user[:hours_assigned], user[:hours_selected]] }.first
+  
+        puts "user_info size: #{user_info.size}"
+        puts "user_info size: #{user_info}"
+        puts "user_with_min_hours_assigned: #{user_with_min_hours_assigned}"
+        puts "days: #{days}"
+        puts "date: #{date}"
+          
         user_id = user_with_min_hours_assigned[:user_id]
         days_to_delete = []
-
-        if filter_availability[date.to_s].values.all?(false)
+  
+        if days.values.all?(false)
           filter_availability.delete(date)
+          next 
         end
-
+  
         days.each do |assignation_id, hours|
-          has_hours = self.verify_if_user_has_hours_to_assign(days, user_id)
-          if !has_hours
-            aux_user_info = aux_user_info.select { |user| user[:user_id] != user_id }
-            next
+          puts "assignation_id: #{assignation_id}"
+          puts "hours: #{hours}"
+          has_hours = verify_if_user_has_hours_to_assign(days, user_id)
+          unless has_hours
+            user_info.each do |user|
+              if user[:user_id] == user_id
+                user[:restriction_date] = date
+                break
+              end
+            end
+            # user_info.reject! { |user| user[:user_id] == user_id }
+            # Actualiza el conteo de usuarios
+            user_count = user_info.size
+            break
           end
+          
           if hours[user_id.to_s]
             days_to_delete << assignation_id
             assignation << assignation_id
           end
         end
-
-        days_to_delete.each do |assignation_id|
-          days.delete(assignation_id)
-        end
-
+  
+        days_to_delete.each { |assignation_id| days.delete(assignation_id) }
+  
         if days.empty?
           filter_availability.delete(date)
         end
-
+  
         if assignation.any?
           assignation_update = Assignation.where(id: assignation)
-
-          if assignation_update
+          if assignation_update && user_id
             assignation_update.update_all(user_id: user_id)
           end
-
-          aux_user_info.each do |user|
+          
+          user_info.each do |user|
             if user[:user_id] == user_id
               user[:hours_assigned] += assignation.size
               user[:hours_selected] -= assignation.size
               break
             end
           end
-
+          
           assignation.clear
         end
-        
       end
+  
+      # break if num > 1000
+      # Actualiza el conteo de usuarios después del procesamiento
+      user_count = user_info.size
     end
+  rescue StandardError => e
+    puts "error: #{e.message}"
   end
-
-  private 
+  
+  
+  private
+  
   def verify_if_user_has_hours_to_assign(days, user_id)
-    has_hours = false;
-    has_true_value = days.any? do |day, users|
-      if users[user_id.to_s]
-        has_hours = true
-      end
-    end
+    days.any? { |day, users| users[user_id.to_s] }
   end
+  
 end
